@@ -1,44 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monte Carlo Simulation for Pi Estimation</title>
+  <style>
+    #container {
+      width: 500px;
+      height: 500px;
+      border: 1px solid black;
+      position: relative;
+    }
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      position: absolute;
+    }
+    .inside {
+      background-color: green;
+    }
+    .outside {
+      background-color: red;
+    }
+    #speed-slider {
+      margin-top: 10px;
+    }
+  </style>
+</head>
 <body>
-<button id="generate-point-button">Generate point</button>
-<button id="run-simulation-button">Run Simulation</button>
-<p id="result"></p>
 
-<style>
-  #container {
-    width: 500px;
-    height: 500px;
-    border: 1px solid black;
-    position: relative;
-  }
-  .dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    position: absolute;
-  }
-  .inside {
-    background-color: green;
-  }
-  .outside {
-    background-color: red;
-  }
-</style>
+<button id="run-simulation-button">Run Simulation</button>
+<button id="pause-simulation-button">Pause Simulation</button>
+<button id="reset-simulation-button">Reset Simulation</button>
+<p id="result"></p>
+<label for="speed-slider">Simulation Speed:</label>
+<input type="range" min="1" max="100" value="1" class="slider" id="speed-slider">
 
 <div id="container"></div>
-</body>
 
 <script>
-  const generatePointButton = document.getElementById("generate-point-button");
   const runSimulationButton = document.getElementById("run-simulation-button");
+  const pauseSimulationButton = document.getElementById("pause-simulation-button");
+  const resetSimulationButton = document.getElementById("reset-simulation-button");
   const result = document.getElementById("result");
   const container = document.getElementById("container");
+  const speedSlider = document.getElementById("speed-slider");
 
   let insideCount = 0;
   let totalCount = 0;
+  let simulationRunning = false;
+  let intervalId;
+  let simulationSpeed = 1;
 
-  generatePointButton.addEventListener("click", function() {
+  runSimulationButton.addEventListener("click", function() {
+    if (!simulationRunning) {
+      intervalId = setInterval(generatePoint, 100 / simulationSpeed);
+      simulationRunning = true;
+    }
+  });
+
+  pauseSimulationButton.addEventListener("click", function() {
+    if (simulationRunning) {
+      clearInterval(intervalId);
+      simulationRunning = false;
+    }
+  });
+
+  resetSimulationButton.addEventListener("click", function() {
+    clearInterval(intervalId);
+    simulationRunning = false;
+    insideCount = 0;
+    totalCount = 0;
+    result.textContent = "Estimated value of π: 0.00000";
+    container.innerHTML = ""; // Clear the container
+  });
+
+  speedSlider.addEventListener("input", function() {
+    simulationSpeed = speedSlider.value;
+    if (simulationRunning) {
+      clearInterval(intervalId);
+      intervalId = setInterval(generatePoint, 100 / simulationSpeed);
+    }
+  });
+
+  function generatePoint() {
     const x = Math.random() * 500 - 250;
     const y = Math.random() * 500 - 250;
 
@@ -58,19 +104,10 @@
     container.appendChild(dot);
 
     const piEstimate = 4 * insideCount / totalCount;
-    result.textContent = `Estimated value of π: ${piEstimate}`;
-  });
-
-  runSimulationButton.addEventListener("click", function() {
-    let count = 0;
-    const intervalId = setInterval(function() {
-      generatePointButton.click();
-      count++;
-
-      if (count >= 10000) {
-        clearInterval(intervalId);
-      }
-    }, 1);
-  });
+    result.textContent = `Estimated value of π: ${piEstimate.toFixed(5)}`;
+  }
 </script>
+
+</body>
 </html>
+
